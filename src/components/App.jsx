@@ -1,5 +1,6 @@
 import { Component } from 'react';
 import { nanoid } from 'nanoid';
+import toast, { Toaster } from 'react-hot-toast';
 import { ContactForm } from './ContactForm/ContactForm';
 import { ContactList } from './ContactsList/ContactList';
 import { Filter } from './Filter/Filter';
@@ -20,26 +21,30 @@ export class App extends Component {
 
   addContact = newContact => {
     const { contacts } = this.state;
-    const isDuplicate = contacts.some(
+    const isDuplicateName = contacts.some(
       contact => contact.name.toLowerCase() === newContact.name.toLowerCase()
     );
     const isDuplicateNumber = contacts.some(
       contact => contact.number === newContact.number
     );
 
-    if (isDuplicate) {
-      alert(`'${newContact.name}' is already in contacts.`);
+    if (isDuplicateName) {
+      toast.error(`'${newContact.name}' is already in contacts.`);
       return;
     }
+
     if (isDuplicateNumber) {
-      alert(`Number '${newContact.number}' is already saved under the name '${newContact.name}'`);
+      toast.error(
+        `Number '${newContact.number}' is already saved under the name '${newContact.name}'`
+      );
       return;
     }
-    
+
     const contact = {
       ...newContact,
       id: nanoid(),
     };
+    
     this.setState(prevState => ({
       contacts: [...prevState.contacts, contact],
     }));
@@ -66,15 +71,16 @@ export class App extends Component {
     if (savedContacts !== null) {
       this.setState({
         contacts: JSON.parse(savedContacts),
-      })
+      });
     }
   }
 
   componentDidUpdate(prevProps, prevState) {
-    if (prevState.contacts !== this.state.contacts) { 
-      localStorage.setItem('contacts', JSON.stringify(this.state.contacts))
-      }
+    if (prevState.contacts !== this.state.contacts) {
+      localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
+    }
   }
+
   render() {
     const { contacts, filter } = this.state;
     const filterdContacts = contacts.filter(contact =>
@@ -92,6 +98,7 @@ export class App extends Component {
           onDelete={this.deleteContact}
         />
         <GlobalStyle />
+        <Toaster />
       </>
     );
   }
