@@ -5,15 +5,16 @@ export const ContactList = ({ contacts, onDelete }) => {
   return (
     <ul>
       {contacts.map(contact => {
+        const { id, name, number } = contact;
         return (
-          <Item key={contact.id}>
+          <Item key={id}>
             <IconWrapper>
               <IoMdContact size="24"/>
             </IconWrapper>
             <p>
-              {contact.name}: {contact.number}
+              {name}: {number}
             </p>
-            <Button onClick={() => onDelete(contact.id)}>Delete</Button>
+            <Button onClick={() => onDelete(id)}>Delete</Button>
           </Item>
         );
       })}

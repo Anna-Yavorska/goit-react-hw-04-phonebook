@@ -13,6 +13,8 @@ const defaultContacts = [
   { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
 ];
 
+const KEY = 'contacts';
+
 export class App extends Component {
   state = {
     contacts: defaultContacts,
@@ -67,7 +69,7 @@ export class App extends Component {
   };
 
   componentDidMount() {
-    const savedContacts = localStorage.getItem('contacts');
+    const savedContacts = localStorage.getItem(KEY);
     if (savedContacts !== null) {
       this.setState({
         contacts: JSON.parse(savedContacts),
@@ -76,8 +78,9 @@ export class App extends Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    if (prevState.contacts !== this.state.contacts) {
-      localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
+    const { contacts } = this.state;
+    if (prevState.contacts !== contacts) {
+      localStorage.setItem(KEY, JSON.stringify(contacts));
     }
   }
 
