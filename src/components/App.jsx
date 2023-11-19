@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useEffect, useState } from 'react';
 import { nanoid } from 'nanoid';
 import toast, { Toaster } from 'react-hot-toast';
 import { ContactForm } from './ContactForm/ContactForm';
@@ -15,17 +15,30 @@ const defaultContacts = [
 
 const KEY = 'contacts';
 
-export class App extends Component {
-  state = {
-    contacts: defaultContacts,
-    filter: '',
+const getSavedContacts = () => {
+  const savedContacts = window.localStorage.getItem(KEY);
+  return savedContacts !== null ? JSON.parse(savedContacts) : defaultContacts;
+};
+
+export const App = () => {
+  const [contacts, setContacts] = useState(getSavedContacts);
+  const [filter, setFilters] = useState('');
+
+  const updateFilter = newFilter => {
+    setFilters(newFilter);
   };
 
-  addContact = newContact => {
-    const { contacts } = this.state;
+  const deleteContact = contactId => {
+    setContacts(prevState =>
+      prevState.filter(contact => contact.id !== contactId)
+    );
+  };
+
+  const addContact = newContact => {
     const isDuplicateName = contacts.some(
       contact => contact.name.toLowerCase() === newContact.name.toLowerCase()
     );
+
     const isDuplicateNumber = contacts.some(
       contact => contact.number === newContact.number
     );
@@ -46,63 +59,33 @@ export class App extends Component {
       ...newContact,
       id: nanoid(),
     };
-    
-    this.setState(prevState => ({
-      contacts: [...prevState.contacts, contact],
-    }));
+
+    setContacts(prevContacts => [...prevContacts, contact]);
   };
 
-  updateFilter = newFilter => {
-    this.setState({
-      filter: newFilter,
-    });
-  };
-
-  deleteContact = contactId => {
-    this.setState(prevState => {
-      return {
-        contacts: prevState.contacts.filter(
-          contact => contact.id !== contactId
-        ),
-      };
-    });
-  };
-
-  componentDidMount() {
-    const savedContacts = localStorage.getItem(KEY);
-    if (savedContacts !== null) {
-      this.setState({
-        contacts: JSON.parse(savedContacts),
-      });
-    }
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    const { contacts } = this.state;
-    if (prevState.contacts !== contacts) {
-      localStorage.setItem(KEY, JSON.stringify(contacts));
-    }
-  }
-
-  render() {
-    const { contacts, filter } = this.state;
-    const filterdContacts = contacts.filter(contact =>
+  const getFilteredContacts = () =>
+    contacts.filter(contact =>
       contact.name.toLowerCase().includes(filter.toLowerCase())
     );
 
-    return (
-      <>
-        <h1>Phonebook</h1>
-        <ContactForm onAdd={this.addContact} />
-        <h2>Contacts</h2>
-        <Filter filter={filter} onChange={this.updateFilter} />
-        <ContactList
-          contacts={filter === '' ? contacts : filterdContacts}
-          onDelete={this.deleteContact}
-        />
-        <GlobalStyle />
-        <Toaster />
-      </>
-    );
-  }
-}
+  const filteredContacts = getFilteredContacts();
+
+  useEffect(() => {
+    window.localStorage.setItem(KEY, JSON.stringify(contacts));
+  }, [contacts]);
+
+  return (
+    <>
+      <h1>Phonebook</h1>
+      <ContactForm onAdd={addContact} />
+      <h2>Contacts</h2>
+      <Filter filter={filter} onChange={updateFilter} />
+      <ContactList
+        contacts={filter === '' ? contacts : filteredContacts}
+        onDelete={deleteContact}
+      />
+      <GlobalStyle />
+      <Toaster />
+    </>
+  );
+};
